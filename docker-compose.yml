@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+
+  database:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sql_server_db
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=Password_12345
+    networks:
+      - backend-net
+
+  backend:
+    build: ./backend-app
+    container_name: spring_boot_api
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:sqlserver://sql_server_db:1433;databaseName=TestDB;encrypt=false
+      - SPRING_DATASOURCE_USERNAME=sa
+      - SPRING_DATASOURCE_PASSWORD=Password_12345
+    ports:
+      - "8080:8080"
+    networks:
+      - frontend-net
+      - backend-net
+    depends_on:
+      - database
+
+  frontend:
+    build: ./frontend-app
+    container_name: angular_ui
+    ports:
+      - "80:80"
+    networks:
+      - frontend-net
+    depends_on:
+      - backend
+
+networks:
+  frontend-net:
+    external: true
+
+  backend-net:
+    external: true
